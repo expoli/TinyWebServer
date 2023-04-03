@@ -19,9 +19,6 @@ Config::Config(){
     //优雅关闭链接，默认不使用
     OPT_LINGER = 0;
 
-    //数据库连接池数量,默认8
-    sql_num = 8;
-
     //线程池内的线程数量,默认8
     thread_num = 8;
 
