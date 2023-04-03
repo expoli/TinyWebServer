@@ -107,6 +107,7 @@ void WebServer::eventListen()
     assert(m_listenfd >= 0);
 
     //优雅关闭连接
+    // todo 优雅关闭连接详细理解
     if (0 == m_OPT_LINGER)
     {
         struct linger tmp = {0, 1};
@@ -144,6 +145,7 @@ void WebServer::eventListen()
 
     ret = socketpair(PF_UNIX, SOCK_STREAM, 0, m_pipefd);
     assert(ret != -1);
+    // todo 管道写端设置非阻塞
     utils.setnonblocking(m_pipefd[1]);
     utils.addfd(m_epollfd, m_pipefd[0], false, 0);
 
@@ -201,6 +203,7 @@ bool WebServer::dealclinetdata()
 {
     struct sockaddr_in client_address;
     socklen_t client_addrlength = sizeof(client_address);
+    // todo LT模式
     if (0 == m_LISTENTrigmode)
     {
         int connfd = accept(m_listenfd, (struct sockaddr *)&client_address, &client_addrlength);
@@ -215,6 +218,9 @@ bool WebServer::dealclinetdata()
             LOG_ERROR("%s", "Internal server busy");
             return false;
         }
+        /**
+         * 只对新客户连接起作用
+         */
         timer(connfd, client_address);
     }
 
@@ -282,6 +288,11 @@ void WebServer::dealwithread(int sockfd)
     util_timer *timer = users_timer[sockfd].timer;
 
     //reactor
+    /**
+     *
+    Reactor模式：要求主线程（I/O处理单元）只负责监听文件描述符上是否有事件发生（可读、可写），
+     若有，则立即通知工作线程（逻辑单元），将socket可读可写事件放入请求队列，交给工作线程处理。
+     */
     if (1 == m_actormodel)
     {
         if (timer)
@@ -309,6 +320,11 @@ void WebServer::dealwithread(int sockfd)
     else
     {
         //proactor
+        /**
+    Proactor模式：将所有的I/O操作都交给主线程和内核来处理（进行读、写），
+     工作线程仅负责处理逻辑，如主线程读完成后users[sockfd].read()，
+     选择一个工作线程来处理客户请求pool->append(users + sockfd)。
+         */
         if (users[sockfd].read_once())
         {
             LOG_INFO("deal with the client(%s)", inet_ntoa(users[sockfd].get_address()->sin_addr));
@@ -399,13 +415,16 @@ void WebServer::eventLoop()
                 if (false == flag)
                     continue;
             }
+            /**
+             * 错误处理
+             */
             else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
             {
                 //服务器端关闭连接，移除对应的定时器
                 util_timer *timer = users_timer[sockfd].timer;
                 deal_timer(timer, sockfd);
             }
-            //处理信号
+            //处理超时与终止信号
             else if ((sockfd == m_pipefd[0]) && (events[i].events & EPOLLIN))
             {
                 bool flag = dealwithsignal(timeout, stop_server);
@@ -417,6 +436,7 @@ void WebServer::eventLoop()
             {
                 dealwithread(sockfd);
             }
+            // 写数据
             else if (events[i].events & EPOLLOUT)
             {
                 dealwithwrite(sockfd);

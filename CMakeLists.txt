@@ -4,7 +4,15 @@ project(TinyWebServer)
 
 add_link_options(-lpthread -lmysqlclient)
 
-set(SRC main.cpp  ./timer/lst_timer.cpp ./http/http_conn.cpp ./log/log.cpp ./CGImysql/sql_connection_pool.cpp  webserver.cpp config.cpp)
+set(SRC main.cpp
+        ./timer/lst_timer.cpp ./timer/lst_timer.h
+        ./http/http_conn.cpp ./http/http_conn.h
+        ./threadpool/threadpool.h
+        ./log/log.cpp ./log/log.h
+        ./CGImysql/sql_connection_pool.cpp ./CGImysql/sql_connection_pool.h
+        webserver.h webserver.cpp
+        config.cpp config.h
+        )
 
 option(BUILD_DEBUG_MODE "build server with debug mode?" OFF)
 

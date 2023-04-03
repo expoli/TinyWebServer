@@ -101,6 +101,9 @@ void threadpool<T>::run()
 {
     while (true)
     {
+        /**
+         * 从任务队列中取出任务
+         */
         m_queuestat.wait();
         m_queuelocker.lock();
         if (m_workqueue.empty())
@@ -113,6 +116,7 @@ void threadpool<T>::run()
         m_queuelocker.unlock();
         if (!request)
             continue;
+        // Reactor模型
         if (1 == m_actor_model)
         {
             if (0 == request->m_state)

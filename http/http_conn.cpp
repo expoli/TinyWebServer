@@ -61,7 +61,7 @@ void addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
 {
     epoll_event event;
     event.data.fd = fd;
-
+    // ET模式
     if (1 == TRIGMode)
         event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     else
