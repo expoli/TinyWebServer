@@ -8,20 +8,22 @@
 #include "../lock/locker.h"
 #include "../http/http_conn.h"
 
-template <typename T>
-class threadpool
-{
+template<typename T>
+class threadpool {
 public:
     /*thread_number是线程池中线程的数量，max_requests是请求队列中最多允许的、等待处理的请求的数量*/
     threadpool(int actor_model, int thread_number = 8, int max_request = 10000);
 
     ~threadpool();
+
     bool append(T *request, int state);
+
     bool append_p(T *request);
 
 private:
     /*工作线程运行的函数，它不断从工作队列中取出任务并执行之*/
     static void *worker(void *arg);
+
     void run();
 
 private:
@@ -44,31 +46,27 @@ threadpool<T>::threadpool(int actor_model, int thread_number, int max_requests) 
     m_threads = new pthread_t[m_thread_number];
     if (!m_threads)
         throw std::exception();
-    for (int i = 0; i < thread_number; ++i)
-    {
-        if (pthread_create(m_threads + i, NULL, worker, this) != 0)
-        {
+    for (int i = 0; i < thread_number; ++i) {
+        if (pthread_create(m_threads + i, NULL, worker, this) != 0) {
             delete[] m_threads;
             throw std::exception();
         }
-        if (pthread_detach(m_threads[i]))
-        {
+        if (pthread_detach(m_threads[i])) {
             delete[] m_threads;
             throw std::exception();
         }
     }
 }
-template <typename T>
-threadpool<T>::~threadpool()
-{
+
+template<typename T>
+threadpool<T>::~threadpool() {
     delete[] m_threads;
 }
-template <typename T>
-bool threadpool<T>::append(T *request, int state)
-{
+
+template<typename T>
+bool threadpool<T>::append(T *request, int state) {
     m_queuelocker.lock();
-    if (m_workqueue.size() >= m_max_requests)
-    {
+    if (m_workqueue.size() >= m_max_requests) {
         m_queuelocker.unlock();
         return false;
     }
@@ -78,12 +76,11 @@ bool threadpool<T>::append(T *request, int state)
     m_queuestat.post();
     return true;
 }
-template <typename T>
-bool threadpool<T>::append_p(T *request)
-{
+
+template<typename T>
+bool threadpool<T>::append_p(T *request) {
     m_queuelocker.lock();
-    if (m_workqueue.size() >= m_max_requests)
-    {
+    if (m_workqueue.size() >= m_max_requests) {
         m_queuelocker.unlock();
         return false;
     }
@@ -92,25 +89,23 @@ bool threadpool<T>::append_p(T *request)
     m_queuestat.post();
     return true;
 }
-template <typename T>
-void *threadpool<T>::worker(void *arg)
-{
-    threadpool *pool = (threadpool *)arg;
+
+template<typename T>
+void *threadpool<T>::worker(void *arg) {
+    threadpool *pool = (threadpool *) arg;
     pool->run();
     return pool;
 }
-template <typename T>
-void threadpool<T>::run()
-{
-    while (true)
-    {
+
+template<typename T>
+void threadpool<T>::run() {
+    while (true) {
         /**
          * 从任务队列中取出任务
          */
         m_queuestat.wait();
         m_queuelocker.lock();
-        if (m_workqueue.empty())
-        {
+        if (m_workqueue.empty()) {
             m_queuelocker.unlock();
             continue;
         }
@@ -120,29 +115,19 @@ void threadpool<T>::run()
         if (!request)
             continue;
         // Reactor模型
-        if (1 == m_actor_model)
-        {
-            if (0 == request->m_state)
-            {
-                if (request->read_once())
-                {
+        if (1 == m_actor_model) {
+            if (0 == request->m_state) {
+                if (request->read_once()) {
                     request->improv = 1;
                     request->process();
-                }
-                else
-                {
+                } else {
                     request->improv = 1;
                     request->timer_flag = 1;
                 }
-            }
-            else
-            {
-                if (request->write())
-                {
+            } else {
+                if (request->write()) {
                     request->improv = 1;
-                }
-                else
-                {
+                } else {
                     request->improv = 1;
                     request->timer_flag = 1;
                 }
@@ -152,4 +137,5 @@ void threadpool<T>::run()
         }
     }
 }
+
 #endif

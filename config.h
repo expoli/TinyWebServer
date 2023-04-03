@@ -5,13 +5,13 @@
 
 using namespace std;
 
-class Config
-{
+class Config {
 public:
     Config();
-    ~Config(){};
 
-    void parse_arg(int argc, char*argv[]);
+    ~Config() {};
+
+    void parse_arg(int argc, char *argv[]);
 
     //端口号
     int PORT;
@@ -31,9 +31,6 @@ public:
     //优雅关闭链接
     int OPT_LINGER;
 
-    //数据库连接池数量
-    int sql_num;
-
     //线程池内的线程数量
     int thread_num;
 
@@ -42,6 +39,8 @@ public:
 
     //并发模型选择
     int actor_model;
+
+    string web_root;
 };
 
 #endif
