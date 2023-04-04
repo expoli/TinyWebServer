@@ -118,18 +118,18 @@ void threadpool<T>::run() {
         if (1 == m_actor_model) {
             if (0 == request->m_state) {
                 if (request->read_once()) {
-                    request->improv = 1;
+                    request->conn_io_done_flag = 1;
                     request->process();
                 } else {
-                    request->improv = 1;
-                    request->timer_flag = 1;
+                    request->conn_io_done_flag = 1;
+                    request->remove_timer_flag = 1;
                 }
             } else {
                 if (request->write()) {
-                    request->improv = 1;
+                    request->conn_io_done_flag = 1;
                 } else {
-                    request->improv = 1;
-                    request->timer_flag = 1;
+                    request->conn_io_done_flag = 1;
+                    request->remove_timer_flag = 1;
                 }
             }
         } else {

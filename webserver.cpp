@@ -253,12 +253,12 @@ void WebServer::dealwithread(int sockfd) {
         m_pool->append(users + sockfd, 0);
 
         while (true) {
-            if (1 == users[sockfd].improv) {
-                if (1 == users[sockfd].timer_flag) {
+            if (1 == users[sockfd].conn_io_done_flag) {
+                if (1 == users[sockfd].remove_timer_flag) {
                     deal_timer(timer, sockfd);
-                    users[sockfd].timer_flag = 0;
+                    users[sockfd].remove_timer_flag = 0;
                 }
-                users[sockfd].improv = 0;
+                users[sockfd].conn_io_done_flag = 0;
                 break;
             }
         }
@@ -295,12 +295,12 @@ void WebServer::dealwithwrite(int sockfd) {
         m_pool->append(users + sockfd, 1);
 
         while (true) {
-            if (1 == users[sockfd].improv) {
-                if (1 == users[sockfd].timer_flag) {
+            if (1 == users[sockfd].conn_io_done_flag) {
+                if (1 == users[sockfd].remove_timer_flag) {
                     deal_timer(timer, sockfd);
-                    users[sockfd].timer_flag = 0;
+                    users[sockfd].remove_timer_flag = 0;
                 }
-                users[sockfd].improv = 0;
+                users[sockfd].conn_io_done_flag = 0;
                 break;
             }
         }

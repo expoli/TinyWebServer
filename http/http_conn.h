@@ -83,8 +83,8 @@ public:
         return &m_address;
     }
 
-    int timer_flag;
-    int improv;
+    int remove_timer_flag;
+    int conn_io_done_flag;
 
 
 private:
