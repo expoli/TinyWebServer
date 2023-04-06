@@ -29,6 +29,8 @@ Config::Config() {
     actor_model = 0;
 
     web_root = "/www";
+
+    proxy_config["localhost"] = "www.baidu.com:80";
 }
 
 void Config::parse_arg(int argc, char *argv[]) {

@@ -16,9 +16,9 @@ public:
 
     ~threadpool();
 
-    bool append(T *request, int state);
+    bool append(http_conn *request, int state);
 
-    bool append_p(T *request);
+    bool append_p(http_conn *request);
 
 private:
     /*工作线程运行的函数，它不断从工作队列中取出任务并执行之*/
@@ -40,7 +40,7 @@ template<typename T>
 threadpool<T>::threadpool(int actor_model, int thread_number, int max_requests) : m_actor_model(actor_model),
                                                                                   m_thread_number(thread_number),
                                                                                   m_max_requests(max_requests),
-                                                                                  m_threads(NULL) {
+                                                                                  m_threads(nullptr) {
     if (thread_number <= 0 || max_requests <= 0)
         throw std::exception();
     m_threads = new pthread_t[m_thread_number];
@@ -64,13 +64,13 @@ threadpool<T>::~threadpool() {
 }
 
 template<typename T>
-bool threadpool<T>::append(T *request, int state) {
+bool threadpool<T>::append(http_conn *request, int state) {
     m_queuelocker.lock();
     if (m_workqueue.size() >= m_max_requests) {
         m_queuelocker.unlock();
         return false;
     }
-    request->m_state = state;
+    request->m_rw_state = state;
     m_workqueue.push_back(request);
     m_queuelocker.unlock();
     m_queuestat.post();
@@ -78,7 +78,7 @@ bool threadpool<T>::append(T *request, int state) {
 }
 
 template<typename T>
-bool threadpool<T>::append_p(T *request) {
+bool threadpool<T>::append_p(http_conn *request) {
     m_queuelocker.lock();
     if (m_workqueue.size() >= m_max_requests) {
         m_queuelocker.unlock();
@@ -109,14 +109,14 @@ void threadpool<T>::run() {
             m_queuelocker.unlock();
             continue;
         }
-        T *request = m_workqueue.front();
+        http_conn *request = m_workqueue.front();
         m_workqueue.pop_front();
         m_queuelocker.unlock();
         if (!request)
             continue;
         // Reactor模型
         if (1 == m_actor_model) {
-            if (0 == request->m_state) {
+            if (0 == request->m_rw_state) {
                 if (request->read_once()) {
                     request->conn_io_done_flag = 1;
                     request->process();

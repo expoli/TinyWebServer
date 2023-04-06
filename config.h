@@ -41,6 +41,8 @@ public:
     int actor_model;
 
     string web_root;
+
+    map<string, string> proxy_config;
 };
 
 #endif

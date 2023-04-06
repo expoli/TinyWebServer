@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 
     //初始化
     server.init(config.PORT, config.LOGWrite, config.OPT_LINGER, config.TRIGMode,
-                config.thread_num, config.close_log, config.actor_model, config.web_root);
+                config.thread_num, config.close_log, config.actor_model, config.web_root, config.proxy_config);
 
     //日志
     server.log_write();

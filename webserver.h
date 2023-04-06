@@ -28,6 +28,9 @@ public:
     void init(int port, int log_write, int opt_linger, int trigmode,
               int thread_num, int close_log, int actor_model, string &web_root);
 
+    void init(int port, int log_write, int opt_linger, int trigmode,
+              int thread_num, int close_log, int actor_model, string &web_root,map<string,string> &);
+
     void thread_pool();
 
     void log_write();
@@ -81,6 +84,9 @@ public:
     //定时器相关
     client_data *users_timer;
     Utils utils;
+
+    // 代理相关
+    map<string ,string> m_proxy_map;
 };
 
 #endif

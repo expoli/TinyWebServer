@@ -42,6 +42,29 @@ void WebServer::init(int port, int log_write, int opt_linger, int trigmode,
     strcat(m_root, m_web_root.c_str());
 }
 
+void WebServer::init(int port, int log_write, int opt_linger, int trigmode,
+          int thread_num, int close_log, int actor_model, string &web_root,map<string,string> &proxy_map){
+    m_port = port;
+    m_thread_num = thread_num;
+    m_log_write = log_write;
+    m_OPT_LINGER = opt_linger;
+    m_TRIGMode = trigmode;
+    m_close_log = close_log;
+    m_actormodel = actor_model;
+    m_web_root = web_root;
+
+    // 应用程序工作文件夹路径
+    char server_path[200];
+    getcwd(server_path, 200);
+
+    // 可自定义配置 web 静态资源路径
+    m_root = (char *) malloc(strlen(server_path) + m_web_root.length() + 1);
+    strcpy(m_root, server_path);
+    strcat(m_root, m_web_root.c_str());
+
+    m_proxy_map = proxy_map;
+}
+
 void WebServer::trig_mode() {
     //LT + LT
     if (0 == m_TRIGMode) {
@@ -137,7 +160,8 @@ void WebServer::eventListen() {
 }
 
 void WebServer::timer(int connfd, struct sockaddr_in client_address) {
-    users[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_close_log);
+    // todo 连接初始化的地方
+    users[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_close_log,m_proxy_map);
 
     //初始化client_data数据
     //创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中
